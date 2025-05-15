@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-1i6p8clxc!zosqf0b38gq2k*1**a!d@#2mbvc20gp^u@x^&v01
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 
 # Application definition
@@ -37,6 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'nubuzz',
+    'corsheaders',
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
