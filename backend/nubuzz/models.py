@@ -10,3 +10,4 @@ class Article(models.Model):
     published_at = models.DateTimeField()
     sentiment = models.CharField(max_length=20)
     location = models.CharField(max_length=100)
+    summarize_article = models.TextField(blank=True)  # ← ADD THIS
