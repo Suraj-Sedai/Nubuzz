@@ -4,10 +4,10 @@ from django.db import models
 class Article(models.Model):
     title = models.CharField(max_length=255)
     summary = models.TextField()
-    content = models.TextField()
+    content = models.TextField(null=True, blank=True)  
     url = models.URLField()
     category = models.CharField(max_length=100)
     published_at = models.DateTimeField()
     sentiment = models.CharField(max_length=20)
     location = models.CharField(max_length=100)
-    summarize_article = models.TextField(blank=True)  # ← ADD THIS
+    summarize_article = models.TextField(blank=True) 
