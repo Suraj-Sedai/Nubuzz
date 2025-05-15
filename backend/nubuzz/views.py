@@ -20,7 +20,23 @@ def fetch_news():
             published_at=article['publishedAt'],
             category=article['category'],
             sentiment=article['sentiment'],
-            location=article['location']
+            location=article['location'],
+            summarize_article=article['summarize_article'],
         )
         
     return data
+
+#adding summarization AI MODEL
+
+from transformers import pipeline
+summarizer = pipeline("summarization")
+
+def summarize_article(request, article_id):
+    try:
+        article = Article.objects.get(id=article_id)
+    except Article.DoesNotExist:
+        return JsonResponse({'error': 'Article not found'}, status=404)
+
+    summary = summarizer(article.content, max_length=50, min_length=25, do_sample=False)
+    return JsonResponse({'summary': summary[0]['summary_text']})
+
