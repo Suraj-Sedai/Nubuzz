@@ -72,7 +72,8 @@ def summarize_article(request, article_id):
         return JsonResponse({'error': 'Article not found'}, status=404)
 
     if not article.content or len(article.content.split()) < 10:
-        return JsonResponse({'error': 'Content too short for summarization'})
+        return JsonResponse({'error': 'Content too short for summarization'}, status=400)
 
-    summary = summarize_text(article.content)
-    return JsonResponse({'summary': summary})
+    summary = summarizer(article.content, max_length=60, min_length=25, do_sample=False)
+    return JsonResponse({'title': article.title, 'summary': summary[0]['summary_text']})
+
