@@ -1,9 +1,7 @@
-from .views import fetch_news
 from django.urls import path
-from django.http import JsonResponse
+from .views import fetch_news_view, summarize_article
 
-app_name = 'nubuzz'
 urlpatterns = [
-    path('fetch-news/', lambda request: JsonResponse(fetch_news())),
-
+    path('fetch-news/', fetch_news_view, name='fetch_news'),
+    path('summary/<int:article_id>/', summarize_article, name='summarize_article'),
 ]
