@@ -1,7 +1,22 @@
-from django.urls import path
-from .views import fetch_news_view, summarize_article
+# nubuzz/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    fetch_news_view,
+    summarize_article,
+    ArticleViewSet,
+    UserPreferenceUpdateAPIView,
+)
+
+router = DefaultRouter()
+router.register(r'news', ArticleViewSet, basename='news')
 
 urlpatterns = [
-    path('fetch-news/', fetch_news_view, name='fetch_news'),
-    path('summary/<int:article_id>/', summarize_article, name='summarize_article'),
+    # your existing endpoints
+    path('fetch-news/',    fetch_news_view,               name='fetch_news'),
+    path('summary/<int:article_id>/', summarize_article,  name='summarize_article'),
+
+    # DRF endpoints
+    path('api/user/preferences/', UserPreferenceUpdateAPIView.as_view(), name='user-preferences'),
+    path('api/', include(router.urls)),
 ]

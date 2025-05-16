@@ -1,10 +1,15 @@
-# views.py
+# nubuzz/views.py
+
 from django.http import JsonResponse
-from .models import Article
+from .models import Article, UserPreference
 import requests
 from transformers import pipeline
 
-# initialize summarizer once
+from rest_framework import viewsets, generics, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from .serializers import ArticleSerializer, UserPreferenceSerializer
+
+# initialize summarizer
 summarizer = pipeline("summarization")
 
 def summarize_text(text):
@@ -22,18 +27,16 @@ def fetch_news():
         return {'error': 'Failed to fetch news'}
 
     for raw in data['articles']:
-        url = raw.get('url')
-        if not url:
+        article_url = raw.get('url')
+        if not article_url:
             continue
 
-        # prepare the text to summarize
-        desc      = raw.get('description') or ''
-        content   = raw.get('content') or ''
-        combined  = f"{desc}\n\n{content}".strip()
+        desc     = raw.get('description') or ''
+        content  = raw.get('content') or ''
+        combined = f"{desc}\n\n{content}".strip()
 
-        # create-or-get
-        article_obj, created = Article.objects.get_or_create(
-            url=url,
+        obj, created = Article.objects.get_or_create(
+            url=article_url,
             defaults={
                 'source_id':    raw.get('source', {}).get('id', ''),
                 'source_name':  raw.get('source', {}).get('name', ''),
@@ -49,10 +52,9 @@ def fetch_news():
             }
         )
 
-        # back-fill missing summary
-        if not article_obj.summarize_article:
-            article_obj.summarize_article = summarize_text(combined)
-            article_obj.save()
+        if not obj.summarize_article:
+            obj.summarize_article = summarize_text(combined)
+            obj.save()
 
     return data
 
@@ -64,18 +66,15 @@ def fetch_news_view(request):
     formatted = []
     for art in Article.objects.all().order_by('-published_at')[:35]:
         formatted.append({
-            "source": {
-                "id":   art.source_id,
-                "name": art.source_name
-            },
-            "author":       art.author or None,
-            "title":        art.title,
-            "description":  art.description or None,
-            "url":          art.url,
-            "urlToImage":   art.url_to_image or None,
-            "publishedAt":  art.published_at.isoformat(),
-            "content":      art.content or None,
-            "summary":      art.summarize_article or None,
+            "source":      {"id": art.source_id, "name": art.source_name},
+            "author":      art.author or None,
+            "title":       art.title,
+            "description": art.description or None,
+            "url":         art.url,
+            "urlToImage":  art.url_to_image or None,
+            "publishedAt": art.published_at.isoformat(),
+            "content":     art.content or None,
+            "summary":     art.summarize_article or None,
         })
 
     return JsonResponse({
@@ -97,3 +96,29 @@ def summarize_article(request, article_id):
         'title':   art.title,
         'summary': summarize_text(art.content)
     })
+
+
+# ─── DRF ViewSets ───────────────────────────────────────────────────────────────
+
+class ArticleViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /nubuzz/api/news/             → list all articles
+    GET /nubuzz/api/news/?category=x  → filter by category
+    GET /nubuzz/api/news/?location=y  → filter by location
+    """
+    queryset         = Article.objects.all().order_by('-published_at')
+    serializer_class = ArticleSerializer
+    filter_backends  = [DjangoFilterBackend]
+    filterset_fields = ['category', 'location']
+
+
+class UserPreferenceUpdateAPIView(generics.UpdateAPIView):
+    """
+    POST /nubuzz/api/user/preferences/ → update the current user’s preferences
+    """
+    serializer_class   = UserPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        obj, _ = UserPreference.objects.get_or_create(user=self.request.user)
+        return obj
