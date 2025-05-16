@@ -6,10 +6,11 @@ function NewsList({ category, location }) {
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    fetchNewsData({ category, location })
+    fetchNewsData({ category: activeCategory, location })
       .then(data => setArticles(data))
-      .catch(err => setError(err.message));
-  }, [category, location]);
+      .catch(err => setError(err.message))
+  }, [activeCategory, location]);
+  
 
   if (error) return <div>Error: {error}</div>;
   if (!articles.length) return <div>Loading…</div>;

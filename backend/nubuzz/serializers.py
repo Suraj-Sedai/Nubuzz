@@ -17,7 +17,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'published_at',
             'category',
             'location',
-            'summary',
+            'summarize_article',
         ]
 
 

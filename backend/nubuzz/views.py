@@ -59,6 +59,12 @@ def fetch_news():
     return data
 
 def fetch_news_view(request):
+    # in fetch_news_view:
+    category = request.GET.get('category')
+    url = f'https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}'
+    if category:
+        url += f'&category={category}'
+
     data = fetch_news()
     if 'error' in data:
         return JsonResponse({'status': 'error', 'message': data['error']}, status=500)
