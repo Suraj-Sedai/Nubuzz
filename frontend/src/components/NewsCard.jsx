@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useTheme } from "../context/ThemeContext"
-import { ThumbsUp, MessageCircle, Share2, Bookmark } from "lucide-react"
+import { ThumbsUp, MessageCircle, Share2, Bookmark, ExternalLink } from "lucide-react"
 
 const NewsCard = ({ item }) => {
   const { darkMode } = useTheme()
@@ -36,6 +36,7 @@ const NewsCard = ({ item }) => {
 
   // Calculate how much of the summary to show based on slider
   const summaryToShow = () => {
+    if (!item.summary) return ""
     const fullLength = item.summary.length
     const showChars = Math.floor((fullLength * summaryLength) / 100)
 
@@ -43,12 +44,23 @@ const NewsCard = ({ item }) => {
     return `${item.summary.substring(0, showChars)}...`
   }
 
+  // Handle external link if provided by API
+  const handleReadMore = () => {
+    if (item.url) {
+      window.open(item.url, "_blank", "noopener,noreferrer")
+    }
+  }
+
   return (
     <div
       className={`rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ${darkMode ? "bg-gray-800" : "bg-white"}`}
     >
       {/* Image */}
-      <img src={item.image || "/placeholder.svg"} alt={item.headline} className="w-full h-48 object-cover" />
+      <img
+        src={item.image || "/placeholder.svg?height=200&width=400"}
+        alt={item.headline}
+        className="w-full h-48 object-cover"
+      />
 
       {/* Content */}
       <div className="p-5">
@@ -58,17 +70,24 @@ const NewsCard = ({ item }) => {
           >
             {item.category}
           </span>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${darkMode ? sentimentColorsDark[item.sentiment] : sentimentColors[item.sentiment]}`}
-          >
-            {item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1)}
-          </span>
+          {item.sentiment && (
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${darkMode ? sentimentColorsDark[item.sentiment] : sentimentColors[item.sentiment]}`}
+            >
+              {item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1)}
+            </span>
+          )}
         </div>
 
         <h3 className="text-xl font-bold mb-2">{item.headline}</h3>
         <p className={`text-sm mb-4 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
           {summaryToShow()}
-          {summaryLength < 100 && <button className="text-purple-500 font-medium ml-1">Read more</button>}
+          {(summaryLength < 100 || item.url) && (
+            <button className="text-purple-500 font-medium ml-1 inline-flex items-center" onClick={handleReadMore}>
+              Read more
+              {item.url && <ExternalLink size={14} className="ml-1" />}
+            </button>
+          )}
         </p>
 
         {/* Adjust Summary Slider */}
