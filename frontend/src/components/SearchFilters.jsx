@@ -1,15 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTheme } from "../context/ThemeContext"
-import { Search, ChevronDown } from "lucide-react"
+import { Search, ChevronDown, MapPin } from "lucide-react"
 
-const SearchFilters = ({ onSearch, onCategoryChange }) => {
+const SearchFilters = ({ onSearch, onCategoryChange, onLocationChange }) => {
   const { darkMode } = useTheme()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
+  const [showLocations, setShowLocations] = useState(false)
+  const [activeLocation, setActiveLocation] = useState("New York")
 
-  const categories = ["All", "Tech", "Politics", "Sports", "Health", "Entertainment", "World"]
+  const categories = [
+    "All",
+    "Tech",
+    "Politics",
+    "Sports",
+    "Health",
+    "Entertainment",
+    "World",
+    "Business",
+    "Environment",
+  ]
+  const locations = ["New York", "London", "Tokyo", "Paris", "Sydney", "Berlin", "Toronto", "Singapore"]
 
   const handleSearch = (e) => {
     const value = e.target.value
@@ -21,6 +34,27 @@ const SearchFilters = ({ onSearch, onCategoryChange }) => {
     setActiveCategory(category)
     if (onCategoryChange) onCategoryChange(category)
   }
+
+  const handleLocationClick = (location) => {
+    setActiveLocation(location)
+    setShowLocations(false)
+    if (onLocationChange) onLocationChange(location)
+  }
+
+  // Close location dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowLocations(false)
+    }
+
+    if (showLocations) {
+      document.addEventListener("click", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside)
+    }
+  }, [showLocations])
 
   return (
     <section className={`py-8 ${darkMode ? "bg-gray-900" : "bg-white"} sticky top-16 z-40 shadow-sm`}>
@@ -60,12 +94,48 @@ const SearchFilters = ({ onSearch, onCategoryChange }) => {
             ))}
           </div>
 
-          {/* Location Tag */}
-          <div className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"} text-sm`}>
-            <span className="flex items-center">
-              Trending in <span className="font-semibold ml-1">New York</span>
-              <ChevronDown size={16} className="ml-1" />
-            </span>
+          {/* Location Dropdown */}
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowLocations(!showLocations)
+              }}
+              className={`flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                darkMode ? "bg-gray-800 text-gray-300 hover:bg-gray-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <MapPin size={16} className="mr-2" />
+              <span>{activeLocation}</span>
+              <ChevronDown size={16} className="ml-2" />
+            </button>
+
+            {showLocations && (
+              <div
+                className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } ring-1 ring-black ring-opacity-5 z-50`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="py-1">
+                  {locations.map((location) => (
+                    <button
+                      key={location}
+                      onClick={() => handleLocationClick(location)}
+                      className={`block w-full text-left px-4 py-2 text-sm ${
+                        location === activeLocation
+                          ? "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:bg-opacity-20 dark:text-purple-300"
+                          : darkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {location}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

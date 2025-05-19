@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTheme } from "../context/ThemeContext"
+import { useLocation } from "react-router-dom"
 import Header from "../components/Header"
 import SearchFilters from "../components/SearchFilters"
 import NewsFeed from "../components/NewsFeed"
@@ -11,6 +12,19 @@ const ExplorePage = () => {
   const { darkMode } = useTheme()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
+  const [activeLocation, setActiveLocation] = useState("New York")
+
+  // Get URL parameters
+  const location = useLocation()
+
+  // Set initial category from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const categoryParam = params.get("category")
+    if (categoryParam) {
+      setActiveCategory(categoryParam)
+    }
+  }, [location])
 
   const handleSearch = (term) => {
     setSearchTerm(term)
@@ -18,6 +32,10 @@ const ExplorePage = () => {
 
   const handleCategoryChange = (category) => {
     setActiveCategory(category)
+  }
+
+  const handleLocationChange = (location) => {
+    setActiveLocation(location)
   }
 
   return (
@@ -30,8 +48,12 @@ const ExplorePage = () => {
             Discover trending stories and deep dives on topics that matter to you.
           </p>
         </div>
-        <SearchFilters onSearch={handleSearch} onCategoryChange={handleCategoryChange} />
-        <NewsFeed searchTerm={searchTerm} activeCategory={activeCategory} />
+        <SearchFilters
+          onSearch={handleSearch}
+          onCategoryChange={handleCategoryChange}
+          onLocationChange={handleLocationChange}
+        />
+        <NewsFeed searchTerm={searchTerm} activeCategory={activeCategory} activeLocation={activeLocation} />
       </main>
       <Footer />
     </div>

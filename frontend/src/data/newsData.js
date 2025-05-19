@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchNewsData } from '../api.js';
 
-function NewsList({ category, location }) {
+function newsData({ category, location }) {
   const [articles, setArticles] = useState([]);
   const [error, setError]     = useState(null);
 
