@@ -36,7 +36,7 @@ const NewsFeed = ({ searchTerm, activeCategory }) => {
         item.title.toLowerCase().includes(term) ||
         (item.summary || "").toLowerCase().includes(term)
       )
-    }
+    } 
 
     // category
     if (activeCategory && activeCategory !== "All") {
@@ -45,7 +45,7 @@ const NewsFeed = ({ searchTerm, activeCategory }) => {
 
     setFilteredNews(filtered)
   }, [articles, searchTerm, activeCategory])
-
+  
   // 3️⃣ Render states
   if (loading) return <div className="text-center py-10">Loading…</div>
   if (error)   return <div className="text-center py-10 text-red-500">Error: {error}</div>
