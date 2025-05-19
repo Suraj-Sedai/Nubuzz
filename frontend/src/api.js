@@ -1,18 +1,22 @@
-const API_BASE = "http://127.0.0.1:8000/nubuzz"
-const NEWS_ENDPOINT = `${API_BASE}/api/news/`
+// src/api.js
+
+const API_BASE            = "http://127.0.0.1:8000/nubuzz"
+const FETCH_NEWS_ENDPOINT = `${API_BASE}/fetch-news/`
 
 export const fetchNewsData = async ({ category, location } = {}) => {
-  const url = new URL(NEWS_ENDPOINT)
+  const url = new URL(FETCH_NEWS_ENDPOINT)
   if (category) url.searchParams.append("category", category)
   if (location) url.searchParams.append("location", location)
 
-  console.log("Fetching from:", url.toString()) // 🔍 for debugging
-
   const response = await fetch(url, { mode: "cors" })
   if (!response.ok) {
-    throw new Error(`Error fetching news: ${response.status} ${response.statusText}`)
+    throw new Error(`Error fetching news: ${response.status}`)
   }
+
   const json = await response.json()
-  return Array.isArray(json) ? json : json.results
+  if (!Array.isArray(json)) {
+    throw new Error("Unexpected response format, expected an array of articles")
+  }
+
+  return json
 }
-1

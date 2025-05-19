@@ -1,105 +1,100 @@
+// src/components/NewsFeed.jsx
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useTheme } from "../context/ThemeContext"
-import NewsCard from "./NewsCard"
-import { fetchNewsData } from "../api"
-import { newsData } from "../data/newsData" // Keep as fallback
+import NewsCard      from "./NewsCard"
 
-const NewsFeed = ({ searchTerm, activeCategory, activeLocation }) => {
+const FETCH_NEWS_ENDPOINT = "http://127.0.0.1:8000/nubuzz/fetch-news/"
+
+export default function NewsFeed({ searchTerm = "", activeLocation }) {
   const { darkMode } = useTheme()
-  const [news, setNews] = useState([])
-  const [filteredNews, setFilteredNews] = useState([])
+  const [news,      setNews     ] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error,     setError    ] = useState(null)
 
-  // Fetch news from API
   useEffect(() => {
-    const getNews = async () => {
+    async function loadNews() {
       setIsLoading(true)
       setError(null)
 
       try {
-        // Only pass category if it's not "All"
-        const category = activeCategory !== "All" ? activeCategory : null
-        const data = await fetchNewsData({
-          category,
-          location: activeLocation,
-        })
+        const url = new URL(FETCH_NEWS_ENDPOINT)
+        if (activeLocation) {
+          url.searchParams.append("location", activeLocation)
+        }
+
+        const res  = await fetch(url.toString(), { mode: "cors" })
+        const text = await res.text()
+
+        // try parse JSON, or fail with clear error
+        let data
+        try {
+          data = JSON.parse(text)
+        } catch (e) {
+          console.error("Non-JSON response from fetch-news:", text)
+          throw new Error("Invalid JSON response from server")
+        }
+
+        if (!res.ok) {
+          // Django returns { status: "error", message: "..." }
+          throw new Error(data.message || data.error || res.statusText)
+        }
+
         setNews(data)
       } catch (err) {
-        console.error("Failed to fetch news:", err)
         setError(err.message)
-        // Fallback to mock data if API fails
-        setNews(newsData)
+        setNews([])
       } finally {
         setIsLoading(false)
       }
     }
 
-    getNews()
-  }, [activeCategory, activeLocation])
+    loadNews()
+  }, [activeLocation])
 
-  // Filter news by search term
-  useEffect(() => {
-    if (searchTerm && searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(item =>
-        item.title.toLowerCase().includes(term) ||
-        (item.summary || "").toLowerCase().includes(term)
+  // apply search filter
+  const filteredNews = searchTerm.trim()
+    ? news.filter(item =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description || "").toLowerCase().includes(searchTerm.toLowerCase())
       )
-    }
+    : news
 
-    // category
-    if (activeCategory && activeCategory !== "All") {
-      filtered = filtered.filter(item => item.category === activeCategory)
-    }
-
-    setFilteredNews(filtered)
-  }, [articles, searchTerm, activeCategory])
-
-  // 3️⃣ Render states
-  if (loading) return <div className="text-center py-10">Loading…</div>
-  if (error)   return <div className="text-center py-10 text-red-500">Error: {error}</div>
-  if (!filteredNews.length) {
+  if (isLoading) {
     return (
-      <div className={`text-center py-10 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-        No news found matching your criteria. Try adjusting your search or filters.
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500" />
       </div>
     )
   }
 
-  // 4️⃣ Render grid
+  if (error) {
+    return (
+      <div className="text-center py-10 text-red-500">
+        {error}
+      </div>
+    )
+  }
+
+  if (!filteredNews.length) {
+    return (
+      <div className={`text-center py-10 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+        No articles found.
+      </div>
+    )
+  }
+
   return (
     <section id="news-feed" className={`py-12 ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       <div className="container mx-auto px-4">
         <h2 className="text-2xl font-bold mb-8">Today's Top Stories</h2>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-10">
-            <p className={`text-lg ${darkMode ? "text-red-400" : "text-red-600"} mb-4`}>{error}</p>
-            <p className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Showing fallback data instead.</p>
-          </div>
-        ) : filteredNews.length === 0 ? (
-          <div className="text-center py-10">
-            <p className={`text-lg ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-              No news found matching your criteria. Try adjusting your search or filters.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredNews.map((item) => (
-              <NewsCard key={item.id || Math.random()} item={normalizeNewsItem(item)} />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredNews.map(item => (
+            <NewsCard key={item.url} item={item} />
+          ))}
+        </div>
       </div>
     </section>
   )
 }
-
-export default NewsFeed
