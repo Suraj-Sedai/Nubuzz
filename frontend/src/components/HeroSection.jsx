@@ -1,12 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTheme } from "../context/ThemeContext"
-import { TrendingUp, Zap, Globe, Sparkles } from "lucide-react"
+import { TrendingUp, Zap, Globe, Sparkles, ArrowRight, Brain, Newspaper, Clock } from "lucide-react"
 
 const HeroSection = () => {
   const { darkMode } = useTheme()
   const [animatedCount, setAnimatedCount] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  const [activeNewsIndex, setActiveNewsIndex] = useState(0)
+  const heroRef = useRef(null)
+
+  const newsItems = [
+    { title: "AI Revolution", category: "Tech", time: "2h ago" },
+    { title: "Global Markets Surge", category: "Finance", time: "4h ago" },
+    { title: "Climate Summit Results", category: "Environment", time: "6h ago" },
+    { title: "Space Discovery", category: "Science", time: "12h ago" },
+  ]
 
   // Animated counter effect
   useEffect(() => {
@@ -29,155 +39,397 @@ const HeroSection = () => {
     return () => clearInterval(timer)
   }, [])
 
+  // Rotate news items
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveNewsIndex((prev) => (prev + 1) % newsItems.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [newsItems.length])
+
+  // Animation on scroll
+  useEffect(() => {
+    setIsVisible(true)
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 },
+    )
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current)
+    }
+
+    return () => {
+      if (heroRef.current) {
+        observer.unobserve(heroRef.current)
+      }
+    }
+  }, [])
+
   return (
     <section
+      ref={heroRef}
       className={`
         pt-16 pb-24 md:pt-20 md:pb-32 overflow-hidden relative
         ${darkMode ? "bg-gray-900" : "bg-white"}
       `}
     >
-      {/* Background gradient shapes */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
-      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 animate-float-slow"></div>
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3 animate-float-slow-reverse"></div>
 
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center">
-          {/* Left side - Content */}
-          <div className="w-full md:w-1/2 mb-12 md:mb-0 md:pr-8">
-            <div className="inline-block px-4 py-2 mb-6 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-300 font-medium text-sm">
-              <span className="flex items-center">
-                <TrendingUp size={16} className="mr-2" />
-                AI-Powered News Platform
+        {/* Animated particles */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-500 rounded-full animate-pulse-float"></div>
+        <div className="absolute top-3/4 right-1/4 w-3 h-3 bg-pink-500 rounded-full animate-pulse-float-delay"></div>
+        <div className="absolute top-1/2 left-3/4 w-2 h-2 bg-purple-300 rounded-full animate-pulse-float-slow"></div>
+        <div className="absolute top-1/3 right-1/3 w-4 h-4 bg-pink-300 rounded-full animate-pulse-float-slow-delay"></div>
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Creative headline with animated typing effect */}
+        <div
+          className={`max-w-5xl mx-auto text-center mb-16 transform transition-all duration-1000 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
+        >
+          <div className="inline-block px-4 py-2 mb-6 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-300 font-medium text-sm">
+            <span className="flex items-center">
+              <Brain size={16} className="mr-2" />
+              AI-Powered News Revolution
+            </span>
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+            <span className="relative inline-block">
+              <span className="absolute -inset-1 blur-xl bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-lg"></span>
+              <span className="relative bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+                News That Thinks
               </span>
-            </div>
+            </span>
+            <br />
+            <span className={`relative ${darkMode ? "text-white" : "text-gray-900"}`}>
+              <span className="typing-cursor">|</span> Like You Do
+            </span>
+          </h1>
 
-            <h1 className="text-4xl lg:text-6xl font-extrabold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-                Smarter News.
-              </span>
-              <br />
-              <span className={darkMode ? "text-white" : "text-gray-900"}>Personalized For You.</span>
-            </h1>
+          <p
+            className={`text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+          >
+            Experience the future of news with AI-powered summaries tailored to your interests.
+            <span className="hidden md:inline">
+              {" "}
+              Save time, stay informed, and never miss what matters most to you.
+            </span>
+          </p>
+        </div>
 
-            <p
-              className={`text-lg md:text-xl mb-8 max-w-xl leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-600"}`}
-            >
-              Get AI-curated news summaries tailored to your interests. Save time and stay informed with the stories
-              that matter most to you.
-            </p>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+          {/* Left side - Interactive news feed preview */}
+          <div
+            className={`w-full lg:w-1/2 transform transition-all duration-1000 delay-300 ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"}`}
+          >
+            <div className="relative">
+              {/* Floating news cards */}
+              <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 transform transition-all duration-500 hover:scale-105 hover:shadow-purple-500/20">
+                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  LIVE
+                </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30">
-                <span className="block text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text mb-1">
-                  {animatedCount.toLocaleString()}+
-                </span>
-                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Active Users</span>
+                {/* News feed header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Newspaper size={20} className="text-white" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="font-bold text-gray-900 dark:text-white">Nubuzz Feed</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Personalized for you</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className={`w-2 h-2 rounded-full ${i === activeNewsIndex ? "bg-purple-500" : "bg-gray-300 dark:bg-gray-600"}`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Animated news items */}
+                <div className="relative h-[280px] overflow-hidden">
+                  {newsItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-all duration-500 transform ${
+                        index === activeNewsIndex
+                          ? "translate-x-0 opacity-100"
+                          : index < activeNewsIndex
+                            ? "-translate-x-full opacity-0"
+                            : "translate-x-full opacity-0"
+                      }`}
+                    >
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                        <img
+                          src={`/placeholder.svg?height=150&width=400&text=${item.title}`}
+                          alt={item.title}
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full">
+                              {item.category}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                              <Clock size={12} className="mr-1" />
+                              {item.time}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-gray-900 dark:text-white text-lg">{item.title}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                            AI-generated summary provides key insights in seconds...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Interactive controls */}
+                <div className="mt-6 flex justify-between items-center">
+                  <div className="flex space-x-2">
+                    <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                      <TrendingUp size={18} className="text-purple-500" />
+                    </button>
+                    <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-700">
+                      <Sparkles size={18} className="text-pink-500" />
+                    </button>
+                  </div>
+                  <button className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400">
+                    View all <ArrowRight size={14} className="ml-1" />
+                  </button>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30">
+
+              {/* Floating elements */}
+              <div className="absolute -top-6 -left-6 p-4 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-purple-100 dark:border-purple-900/30 transform rotate-6 z-0">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 mr-2">
+                    <Zap size={16} />
+                  </div>
+                  <span className="text-sm font-medium">Instant Updates</span>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-6 -right-6 p-4 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-purple-100 dark:border-purple-900/30 transform -rotate-6 z-0">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-2">
+                    <Globe size={16} />
+                  </div>
+                  <span className="text-sm font-medium">Global Coverage</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Stats and CTA */}
+          <div
+            className={`w-full lg:w-1/2 transform transition-all duration-1000 delay-500 ${isVisible ? "translate-x-0 opacity-100" : "translate-x-10 opacity-0"}`}
+          >
+            {/* Animated stats */}
+            <div className="grid grid-cols-2 gap-4 mb-10">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30 transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <div className="flex items-center mb-2">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                    <Brain size={20} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">AI-Powered</span>
+                </div>
+                <span className="block text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text mb-1">
+                  100%
+                </span>
+                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Smart Summaries</span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30 transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <div className="flex items-center mb-2">
+                  <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 mr-3">
+                    <Clock size={20} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Time Saved</span>
+                </div>
+                <span className="block text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text mb-1">
+                  80%
+                </span>
+                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Read Less, Learn More</span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30 transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <div className="flex items-center mb-2">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                    <Newspaper size={20} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Sources</span>
+                </div>
                 <span className="block text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text mb-1">
                   100+
                 </span>
-                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>News Sources</span>
+                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Trusted Publishers</span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-100 dark:border-purple-900/30 transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <div className="flex items-center mb-2">
+                  <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 mr-3">
+                    <TrendingUp size={20} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Users</span>
+                </div>
+                <span className="block text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text mb-1">
+                  {animatedCount.toLocaleString()}+
+                </span>
+                <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Growing Community</span>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <a
                 href="#news-feed"
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium text-center shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-200 transform hover:-translate-y-1"
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium text-center shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-200 transform hover:-translate-y-1 relative overflow-hidden group"
               >
-                Explore News
+                <span className="relative z-10">Explore News</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                <span className="absolute -inset-full top-0 block w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
               </a>
               <a
                 href="#features"
-                className={`px-8 py-4 rounded-xl ${
+                className={`px-8 py-4 rounded-xl font-medium text-center transition-all duration-200 relative overflow-hidden group ${
                   darkMode
                     ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                } font-medium text-center transition-all duration-200`}
+                }`}
               >
-                How It Works
+                <span className="relative z-10 flex items-center justify-center">
+                  How It Works
+                  <ArrowRight
+                    size={16}
+                    className="ml-2 transform group-hover:translate-x-1 transition-transform duration-200"
+                  />
+                </span>
               </a>
             </div>
-          </div>
 
-          {/* Right side - App mockup */}
-          <div className="w-full md:w-1/2 relative">
-            {/* Main device */}
-            <div className="relative z-10 mx-auto max-w-xs">
-              <div className="rounded-[2.5rem] overflow-hidden border-8 border-gray-800 shadow-2xl relative bg-gray-800">
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/3 h-6 bg-gray-800 rounded-b-xl z-10"></div>
-                <img
-                  src="/placeholder.svg?height=600&width=300"
-                  alt="Nubuzz mobile app"
-                  className="w-full h-[500px] object-cover"
-                />
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-1/3 h-1 bg-gray-600 rounded-full"></div>
-
-                {/* Animated elements */}
-                <div className="absolute top-20 left-8 right-8 p-4 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur shadow-lg transform transition-all duration-300 hover:scale-105">
-                  <div className="flex items-center mb-2">
-                    <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white mr-2">
-                      <Zap size={14} />
-                    </div>
-                    <h4 className="font-bold text-sm">Breaking News</h4>
-                  </div>
-                  <p className="text-xs text-gray-700 dark:text-gray-300">
-                    AI breakthrough increases computing speed by 200x...
-                  </p>
-                </div>
-
-                <div className="absolute bottom-24 right-4 p-3 rounded-full bg-pink-500 shadow-lg animate-pulse">
-                  <Globe size={24} className="text-white" />
-                </div>
-
-                <div className="absolute bottom-40 left-6 p-3 rounded-full bg-purple-500/80 shadow-lg transform animate-bounce">
-                  <Sparkles size={18} className="text-white" />
-                </div>
+            {/* Trust badges */}
+            <div className="flex flex-wrap justify-center gap-6 mt-8">
+              <div className={`flex items-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <Sparkles size={16} className="mr-2 text-purple-500" />
+                <span className="text-sm">AI-Powered</span>
               </div>
-
-              {/* Reflection effect */}
-              <div className="mt-4 mx-auto w-3/4 h-4 bg-black/10 dark:bg-white/10 blur-md rounded-full"></div>
-            </div>
-
-            {/* Background elements */}
-            <div className="absolute top-1/3 right-4 w-24 h-24 rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-xl"></div>
-            <div className="absolute bottom-1/4 left-8 w-20 h-20 rounded-full bg-pink-400/20 dark:bg-pink-600/10 blur-lg"></div>
-
-            {/* Feature cards */}
-            <div className="absolute top-10 md:-right-10 p-4 rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-purple-100 dark:border-purple-900/30 transform rotate-6 hidden md:block">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 mr-2">
-                  <TrendingUp size={16} />
-                </div>
-                <span className="text-sm font-medium">Smart Analysis</span>
+              <div className={`flex items-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <Zap size={16} className="mr-2 text-pink-500" />
+                <span className="text-sm">Real-time Updates</span>
               </div>
-            </div>
-
-            <div className="absolute bottom-10 md:-left-10 p-4 rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-purple-100 dark:border-purple-900/30 transform -rotate-6 hidden md:block">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-2">
-                  <Sparkles size={16} />
-                </div>
-                <span className="text-sm font-medium">Personalized Feed</span>
+              <div className={`flex items-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <Globe size={16} className="mr-2 text-purple-500" />
+                <span className="text-sm">Global Coverage</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Wave divider */}
+      {/* Creative wave divider */}
       <div className="absolute bottom-0 left-0 right-0 h-24 overflow-hidden">
         <svg
           viewBox="0 0 1200 120"
           preserveAspectRatio="none"
           className={`absolute bottom-0 w-full h-full ${darkMode ? "fill-gray-800" : "fill-gray-50"}`}
         >
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C0,0,0,32,0,48Z"></path>
+          <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z"></path>
         </svg>
       </div>
+
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(20px, -20px); }
+        }
+        
+        @keyframes float-slow-reverse {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-20px, 20px); }
+        }
+        
+        @keyframes pulse-float {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+          50% { transform: translate(10px, -10px) scale(1.2); opacity: 1; }
+        }
+        
+        @keyframes pulse-float-delay {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+          50% { transform: translate(-10px, 10px) scale(1.2); opacity: 1; }
+        }
+        
+        @keyframes pulse-float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+          50% { transform: translate(15px, -15px) scale(1.3); opacity: 0.8; }
+        }
+        
+        @keyframes pulse-float-slow-delay {
+          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+          50% { transform: translate(-15px, 15px) scale(1.3); opacity: 0.8; }
+        }
+        
+        .animate-float-slow {
+          animation: float-slow 15s ease-in-out infinite;
+        }
+        
+        .animate-float-slow-reverse {
+          animation: float-slow-reverse 15s ease-in-out infinite;
+        }
+        
+        .animate-pulse-float {
+          animation: pulse-float 8s ease-in-out infinite;
+        }
+        
+        .animate-pulse-float-delay {
+          animation: pulse-float-delay 8s ease-in-out infinite;
+          animation-delay: 2s;
+        }
+        
+        .animate-pulse-float-slow {
+          animation: pulse-float-slow 12s ease-in-out infinite;
+        }
+        
+        .animate-pulse-float-slow-delay {
+          animation: pulse-float-slow-delay 12s ease-in-out infinite;
+          animation-delay: 3s;
+        }
+        
+        .bg-grid-pattern {
+          background-image: linear-gradient(to right, ${darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 1px, transparent 1px),
+                            linear-gradient(to bottom, ${darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 1px, transparent 1px);
+          background-size: 40px 40px;
+        }
+        
+        .typing-cursor {
+          display: inline-block;
+          width: 2px;
+          animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+          from, to { opacity: 1; }
+          50% { opacity: 0; }
+        }
+      `}</style>
     </section>
   )
 }
