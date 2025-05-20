@@ -3,20 +3,51 @@
 import { useState, useEffect, useRef } from "react"
 import { useTheme } from "../context/ThemeContext"
 import { TrendingUp, Zap, Globe, Sparkles, ArrowRight, Brain, Newspaper, Clock } from "lucide-react"
+import { fetchNewsData } from "../api"
 
 const HeroSection = () => {
   const { darkMode } = useTheme()
   const [animatedCount, setAnimatedCount] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [activeNewsIndex, setActiveNewsIndex] = useState(0)
+  const [newsArticles, setNewsArticles] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
   const heroRef = useRef(null)
 
-  const newsItems = [
-    { title: "AI Revolution", category: "Tech", time: "2h ago" },
-    { title: "Global Markets Surge", category: "Finance", time: "4h ago" },
-    { title: "Climate Summit Results", category: "Environment", time: "6h ago" },
-    { title: "Space Discovery", category: "Science", time: "12h ago" },
-  ]
+  // Fetch real news data
+  useEffect(() => {
+    const loadNews = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const data = await fetchNewsData({ limit: 4 }) // Fetch just 4 articles for the carousel
+        setNewsArticles(data.slice(0, 4)) // Ensure we only use up to 4 articles
+      } catch (err) {
+        console.error("Failed to fetch news for hero section:", err)
+        setError(err.message)
+        // Fallback data if API fails
+        setNewsArticles([
+          { title: "AI Revolution", category: "Tech", publishedAt: new Date(Date.now() - 7200000).toISOString() },
+          {
+            title: "Global Markets Surge",
+            category: "Finance",
+            publishedAt: new Date(Date.now() - 14400000).toISOString(),
+          },
+          {
+            title: "Climate Summit Results",
+            category: "Environment",
+            publishedAt: new Date(Date.now() - 21600000).toISOString(),
+          },
+          { title: "Space Discovery", category: "Science", publishedAt: new Date(Date.now() - 43200000).toISOString() },
+        ])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadNews()
+  }, [])
 
   // Animated counter effect
   useEffect(() => {
@@ -41,11 +72,13 @@ const HeroSection = () => {
 
   // Rotate news items
   useEffect(() => {
+    if (newsArticles.length === 0) return
+
     const interval = setInterval(() => {
-      setActiveNewsIndex((prev) => (prev + 1) % newsItems.length)
-    }, 3000)
+      setActiveNewsIndex((prev) => (prev + 1) % newsArticles.length)
+    }, 5000) // Longer duration for better readability
     return () => clearInterval(interval)
-  }, [newsItems.length])
+  }, [newsArticles.length])
 
   // Animation on scroll
   useEffect(() => {
@@ -68,6 +101,43 @@ const HeroSection = () => {
       }
     }
   }, [])
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "Recent"
+
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+
+    if (diffMins < 60) {
+      return `${diffMins} min${diffMins !== 1 ? "s" : ""} ago`
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`
+    } else {
+      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    }
+  }
+
+  // Get category from article
+  const getCategory = (article) => {
+    if (!article) return "General"
+    return article.category || (article.source && article.source.name) || "News"
+  }
+
+  // Truncate text
+  const truncateText = (text, maxLength = 80) => {
+    if (!text) return "No preview available."
+    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+  }
+
+  // Get summary text
+  const getSummary = (article) => {
+    if (!article) return "No preview available."
+    return article.summary || article.description || article.content || "No preview available."
+  }
 
   return (
     <section
@@ -130,7 +200,7 @@ const HeroSection = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-          {/* Left side - Interactive news feed preview */}
+          {/* Left side - Interactive news feed preview with real data */}
           <div
             className={`w-full lg:w-1/2 transform transition-all duration-1000 delay-300 ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0"}`}
           >
@@ -153,7 +223,7 @@ const HeroSection = () => {
                     </div>
                   </div>
                   <div className="flex space-x-1">
-                    {[0, 1, 2, 3].map((i) => (
+                    {newsArticles.map((_, i) => (
                       <div
                         key={i}
                         className={`w-2 h-2 rounded-full ${i === activeNewsIndex ? "bg-purple-500" : "bg-gray-300 dark:bg-gray-600"}`}
@@ -162,44 +232,68 @@ const HeroSection = () => {
                   </div>
                 </div>
 
-                {/* Animated news items */}
-                <div className="relative h-[280px] overflow-hidden">
-                  {newsItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className={`absolute inset-0 transition-all duration-500 transform ${
-                        index === activeNewsIndex
-                          ? "translate-x-0 opacity-100"
-                          : index < activeNewsIndex
-                            ? "-translate-x-full opacity-0"
-                            : "translate-x-full opacity-0"
-                      }`}
-                    >
-                      <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
-                        <img
-                          src={`/placeholder.svg?height=150&width=400&text=${item.title}`}
-                          alt={item.title}
-                          className="w-full h-40 object-cover"
-                        />
-                        <div className="p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full">
-                              {item.category}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                              <Clock size={12} className="mr-1" />
-                              {item.time}
-                            </span>
+                {/* Loading state */}
+                {isLoading ? (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                  </div>
+                ) : error ? (
+                  <div className="h-[280px] flex items-center justify-center text-red-500">
+                    <p>Could not load news data</p>
+                  </div>
+                ) : (
+                  /* Animated news items with real data */
+                  <div className="relative h-[280px] overflow-hidden">
+                    {newsArticles.map((article, index) => (
+                      <div
+                        key={index}
+                        className={`absolute inset-0 transition-all duration-500 transform ${
+                          index === activeNewsIndex
+                            ? "translate-x-0 opacity-100"
+                            : index < activeNewsIndex
+                              ? "-translate-x-full opacity-0"
+                              : "translate-x-full opacity-0"
+                        }`}
+                      >
+                        <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                          {article.urlToImage ? (
+                            <img
+                              src={article.urlToImage || "/placeholder.svg"}
+                              alt={article.title}
+                              className="w-full h-40 object-cover"
+                              onError={(e) => {
+                                e.target.src = `/placeholder.svg?height=150&width=400&text=${encodeURIComponent(
+                                  article.title || "News",
+                                )}`
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-40 bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                              <Newspaper size={40} className="text-gray-400 dark:text-gray-500" />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full">
+                                {getCategory(article)}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                                <Clock size={12} className="mr-1" />
+                                {formatDate(article.publishedAt)}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-gray-900 dark:text-white text-lg line-clamp-2">
+                              {article.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
+                              {truncateText(getSummary(article), 100)}
+                            </p>
                           </div>
-                          <h4 className="font-bold text-gray-900 dark:text-white text-lg">{item.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                            AI-generated summary provides key insights in seconds...
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Interactive controls */}
                 <div className="mt-6 flex justify-between items-center">
@@ -211,9 +305,12 @@ const HeroSection = () => {
                       <Sparkles size={18} className="text-pink-500" />
                     </button>
                   </div>
-                  <button className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400">
+                  <a
+                    href="#news-feed"
+                    className="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400"
+                  >
                     View all <ArrowRight size={14} className="ml-1" />
-                  </button>
+                  </a>
                 </div>
               </div>
 
