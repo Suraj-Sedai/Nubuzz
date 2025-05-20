@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { fetchNewsData } from '../api.js'
 
-export default function NewsData({ location, searchTerm = '' }) {
+ export default function NewsData({ location, searchTerm = '' }) {
   const [articles, setArticles] = useState([])
   const [loading,  setLoading ] = useState(true)
   const [error,    setError   ] = useState(null)
@@ -19,12 +19,12 @@ export default function NewsData({ location, searchTerm = '' }) {
         setArticles([])
       })
       .finally(() => setLoading(false))
-  }, [location]) // ← only depends on `location`
+  }, [location])
 
-  if (loading)          return <div>Loading…</div>
-  if (error)            return <div style={{ color: 'red' }}>Error: {error}</div>
+  if (loading) return <div>Loading…</div>
+  if (error)   return <div style={{ color: 'red' }}>Error: {error}</div>
 
-  // filter by search term if given
+  // apply search filter
   const filtered = searchTerm.trim()
     ? articles.filter(a =>
         a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,7 +46,12 @@ export default function NewsData({ location, searchTerm = '' }) {
           {a.urlToImage && (
             <img src={a.urlToImage} alt={a.title} style={{ maxWidth: '100%' }} />
           )}
-          <p>{a.summary}</p>
+          {/* fallback to description/content when summary is empty */}
+          <p>
+            {a.summary
+              ? a.summary
+              : a.description || a.content || "No preview available."}
+          </p>
           <a href={a.url} target="_blank" rel="noopener noreferrer">
             Read more
           </a>
