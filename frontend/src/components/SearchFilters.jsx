@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTheme } from "../context/ThemeContext"
 import { Search, ChevronDown, MapPin } from "lucide-react"
 
@@ -10,6 +10,7 @@ const SearchFilters = ({ onSearch, onCategoryChange, onLocationChange }) => {
   const [activeCategory, setActiveCategory] = useState("All")
   const [showLocations, setShowLocations] = useState(false)
   const [activeLocation, setActiveLocation] = useState("New York")
+  const locationDropdownRef = useRef(null)
 
   const categories = [
     "All",
@@ -43,18 +44,17 @@ const SearchFilters = ({ onSearch, onCategoryChange, onLocationChange }) => {
 
   // Close location dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowLocations(false)
+    const handleClickOutside = (event) => {
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(event.target)) {
+        setShowLocations(false)
+      }
     }
 
-    if (showLocations) {
-      document.addEventListener("click", handleClickOutside)
-    }
-
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("click", handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [showLocations])
+  }, [])
 
   return (
     <section className={`py-8 ${darkMode ? "bg-gray-900" : "bg-white"} sticky top-16 z-40 shadow-sm`}>
@@ -95,12 +95,9 @@ const SearchFilters = ({ onSearch, onCategoryChange, onLocationChange }) => {
           </div>
 
           {/* Location Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={locationDropdownRef}>
             <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowLocations(!showLocations)
-              }}
+              onClick={() => setShowLocations(!showLocations)}
               className={`flex items-center px-4 py-2 rounded-full text-sm font-medium ${
                 darkMode ? "bg-gray-800 text-gray-300 hover:bg-gray-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
@@ -115,7 +112,6 @@ const SearchFilters = ({ onSearch, onCategoryChange, onLocationChange }) => {
                 className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg ${
                   darkMode ? "bg-gray-800" : "bg-white"
                 } ring-1 ring-black ring-opacity-5 z-50`}
-                onClick={(e) => e.stopPropagation()}
               >
                 <div className="py-1">
                   {locations.map((location) => (

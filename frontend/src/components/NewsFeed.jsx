@@ -57,7 +57,7 @@ export default function NewsFeed({ searchTerm = "", activeLocation, activeCatego
   const filteredNews = searchTerm.trim()
     ? news.filter(
         (item) =>
-          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (item.description || "").toLowerCase().includes(searchTerm.toLowerCase()),
       )
     : news
