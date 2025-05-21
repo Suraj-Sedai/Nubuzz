@@ -205,8 +205,17 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+        data     = request.data
+        password = data.get('password')
+
+        # prefer explicit username, otherwise look up by email
+        username = data.get('username')
+        if not username and data.get('email'):
+            try:
+                user_by_email = User.objects.get(email=data['email'])
+                username = user_by_email.username
+            except User.DoesNotExist:
+                username = None
 
         user = authenticate(request, username=username, password=password)
 

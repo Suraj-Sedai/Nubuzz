@@ -30,7 +30,9 @@ class UserPreferenceSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model  = User
-        fields = ('username','email')
+        fields = ('username', 'email')
+        read_only_fields = fields
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)

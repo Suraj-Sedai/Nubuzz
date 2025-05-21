@@ -334,7 +334,7 @@ const AuthPage = () => {
               {!isLogin && (
                 <div className="mb-5">
                   <label htmlFor="name" className="block text-sm font-medium mb-2">
-                    Full Name
+                    Username
                   </label>
                   <div className="relative">
                     <div
@@ -358,7 +358,7 @@ const AuthPage = () => {
                             ? "bg-gray-700 border-gray-600"
                             : "bg-white border-gray-300"
                       } focus:outline-none focus:ring-2 focus:ring-purple-500`}
-                      placeholder="Enter your full name"
+                      placeholder="Enter your username"
                       disabled={isLoading}
                     />
                   </div>
