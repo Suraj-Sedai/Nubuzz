@@ -214,7 +214,6 @@ class LoginView(APIView):
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
                 'user': {
-                    'id': user.id,
                     'username': user.username,
                     'email': user.email
                 },
