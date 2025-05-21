@@ -8,13 +8,24 @@ import requests
 from rest_framework import viewsets, generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import ArticleSerializer, UserPreferenceSerializer
+from rest_framework import generics
+from django.contrib.auth.models import User
+from .serializers import RegisterSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticated
 
 NEWS_API_KEY = '15866422dea04a8b85fc0ae163cdca13'
 
 @require_GET
 def fetch_news_view(request):
     """
-    GET /nubuzz/fetch-news/?category=... 
+     GET /nubuzz/fetch-news/?category=... 
     → Quickly fetch headlines, upsert into DB, and return JSON array.
     Does NOT summarize here, so it returns in <1s.
     """
@@ -72,7 +83,7 @@ def fetch_news_view(request):
 
     # Return the latest 35 articles as JSON array
     formatted = []
-    for art in Article.objects.all().order_by('-published_at')[:35]:
+    for art in Article.objects.all().order_by('-published_at')[:100]:
         formatted.append({
             'source':      {'id': art.source_id, 'name': art.source_name},
             'author':      art.author or None,
@@ -95,7 +106,6 @@ def get_summarizer():
     if not hasattr(get_summarizer, "pipe"):
         get_summarizer.pipe = pipeline("summarization")
     return get_summarizer.pipe
-
 
 @require_GET
 def summarize_article(request, article_id):
@@ -135,3 +145,89 @@ class UserPreferenceUpdateAPIView(generics.UpdateAPIView):
     def get_object(self):
         obj, _ = UserPreference.objects.get_or_create(user=self.request.user)
         return obj
+ 
+#register new user
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset         = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': serializer.data,
+            'token': token.key
+        }, status=status.HTTP_201_CREATED)
+class CustomAuthToken(ObtainAuthToken):
+    """
+    Custom Auth Token view to return user data along with token
+    """
+    def post(self, request, *args, **kwargs):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            },
+            'token': token.key
+        })
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom Token Obtain Pair view to return user data along with tokens
+    """
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        user = User.objects.get(username=request.data['username'])
+        response.data['user'] = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }
+        return response
+    
+#login 
+from django.contrib.auth import authenticate
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                },
+                'token': token.key
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+#logout
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

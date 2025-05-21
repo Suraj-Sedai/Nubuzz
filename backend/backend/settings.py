@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_filters',
-
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 
 ]
 REST_FRAMEWORK = {

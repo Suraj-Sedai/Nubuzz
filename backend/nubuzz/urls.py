@@ -7,6 +7,10 @@ from .views import (
     summarize_article,
     ArticleViewSet,
     UserPreferenceUpdateAPIView,
+#login and register
+    RegisterView,
+    CustomAuthToken,
+    
 )
 
 router = DefaultRouter()
@@ -17,4 +21,7 @@ urlpatterns = [
     path('summary/<int:article_id>/', summarize_article, name='summarize_article'),
     path('api/user/preferences/', UserPreferenceUpdateAPIView.as_view(), name='user-preferences'),
     path('api/', include(router.urls)),
+    path('api/register/', RegisterView.as_view(), name='register'),
+    path('api/login/', CustomAuthToken.as_view(), name='login'),
+
 ]
